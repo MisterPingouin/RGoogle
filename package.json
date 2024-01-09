@@ -5,6 +5,7 @@
         "@babel/preset-react": "^7.23.3",
         "@symfony/webpack-encore": "^4.0.0",
         "core-js": "^3.23.0",
+        "postcss-loader": "^7.3.4",
         "regenerator-runtime": "^0.13.9",
         "sass": "^1.69.7",
         "sass-loader": "^13.0.0",
