@@ -7,13 +7,14 @@ use App\Repository\ReviewRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class ReviewController extends AbstractController
 {
-    #[Route('/reviews', name: 'get_reviews', methods: ['GET'])]
+    #[Route('/api/reviews', name: 'get_reviews', methods: ['GET'])]
     public function getReviews(ReviewRepository $reviewRepository): JsonResponse
     {
         $reviews = $reviewRepository->findAll();
@@ -34,12 +35,36 @@ class ReviewController extends AbstractController
     #[Route('/reviews/add', name: 'add_review', methods: ['POST'])]
     public function addReview(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
+        $title = $request->request->get('title');
+        $date = new \DateTime($request->request->get('date'));
+        $uploadedFile = $request->files->get('image');
+        $destination = $this->getParameter('kernel.project_dir').'/public/uploads';
+
+        if (!$uploadedFile) {
+            return new JsonResponse(['message' => 'No file uploaded'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!in_array($uploadedFile->getMimeType(), ['image/jpeg', 'image/png', 'image/gif'])) {
+            return new JsonResponse(['message' => 'Invalid file type'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($uploadedFile->getSize() > 3000000) {
+            return new JsonResponse(['message' => 'File too large'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
+
+        try {
+            $uploadedFile->move($destination, $newFilename);
+        } catch (FileException $e) {
+            // ... handle exception if something happens during file upload
+            return new JsonResponse(['message' => 'Could not save file'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
 
         $review = new Review();
-        $review->setTitle($data['title']);
-        $review->setImage($data['image']);
-        $review->setDate(new \DateTime($data['date']));
+        $review->setTitle($title);
+        $review->setImage($newFilename);
+        $review->setDate($date);
 
         $entityManager->persist($review);
         $entityManager->flush();
