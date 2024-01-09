@@ -1,18 +1,21 @@
 import React from 'react';
-import Reviews from './components/Reviews'; 
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Home from './components/Home';
+import ErrorPage from './components/ErrorPage';
+import '../styles/app.css';
+import AddReviewPage from './components/AddReviewPage';
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <header className="bg-blue-500 text-white p-6">
-        <h1 className="text-3xl">Bienvenue sur notre page de Reviews</h1>
-      </header>
-      <main className="p-4">
-        <Reviews />
-      </main>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/add-review" element={<AddReviewPage />} />
+        <Route path="*" element={<ErrorPage />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
 
