@@ -10,6 +10,8 @@ const Home = () => {
       <header className="bg-blue-500 text-white p-6">
       <nav>
       <Link to="/add-review">Ajouter une Review</Link>
+      <Link to="/login">Login</Link>
+      <Link to="/register">Inscription</Link>
     </nav>
         <h1 className="text-3xl">Bienvenue sur notre page de Reviews</h1>
       </header>
