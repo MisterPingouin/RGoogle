@@ -36,7 +36,7 @@ class ReviewController extends AbstractController
     public function addReview(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $title = $request->request->get('title');
-        $date = new \DateTime($request->request->get('date'));
+        $date = new \DateTime;
         $uploadedFile = $request->files->get('image');
         $destination = $this->getParameter('kernel.project_dir').'/public/uploads';
 
