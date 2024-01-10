@@ -18,6 +18,10 @@ security:
             pattern: ^/api
             stateless: true
             jwt: ~
+        verify_token:
+            pattern: ^/verify-token
+            stateless: true
+            jwt: ~
     access_control:
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/profile, roles: ROLE_USER }

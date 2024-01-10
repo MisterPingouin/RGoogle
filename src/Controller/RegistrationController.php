@@ -12,6 +12,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+
 
 class RegistrationController extends AbstractController
 {
@@ -49,5 +51,15 @@ class RegistrationController extends AbstractController
 
         return new JsonResponse(['message' => 'User successfully created'], Response::HTTP_CREATED);
     }
+
+    #[Route('/logout', name: 'app_logout', methods: ['POST'])]
+public function logout(TokenStorageInterface $tokenStorage): JsonResponse
+{
+    // Supprimez le token actuel du token storage
+    $tokenStorage->setToken(null);
+
+    // Répondez avec une confirmation de déconnexion
+    return new JsonResponse(['message' => 'Déconnexion réussie']);
+}
 }
 

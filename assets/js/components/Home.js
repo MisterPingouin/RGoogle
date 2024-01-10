@@ -1,17 +1,48 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import Reviews from './Reviews';
 import '../../styles/home.scss';
+import axios from 'axios';
 
 const Home = () => {
   const { auth, setAuth } = useAuth();
 
-  console.log(auth); 
+  useEffect(() => {
+    const verifyAuth = async () => {
+        const savedAuth = localStorage.getItem('auth');
+        if (savedAuth) {
+            const authData = JSON.parse(savedAuth);
+            try {
+                const response = await axios.get('http://localhost:8000/verify-token', {
+                    headers: { Authorization: `Bearer ${authData.token}` }
+                });
+                if (response.status === 200) {
+                    setAuth({ token: authData.token, username: response.data.userIdentifier });
+                }
+            } catch (error) {
+                console.error('Erreur de vérification d\'authentification:', error);
+                setAuth({ token: null, username: null });
+                localStorage.removeItem('auth');
+            }
+        }
+    };
 
-  const handleLogout = () => {
+    verifyAuth();
+}, [setAuth]);
+  
+
+  const handleLogout = async () => {
+    // Déconnectez l'utilisateur côté client
     setAuth({ token: null, username: null });
-    localStorage.removeItem('token');
+    localStorage.removeItem('auth');
+
+    try {
+      await axios.post('http://localhost:8000/logout');
+      console.log('Déconnexion réussie du côté serveur');
+    } catch (error) {
+      console.error('Erreur de déconnexion côté serveur:', error);
+    }
   };
 
   return (
@@ -26,7 +57,7 @@ const Home = () => {
         {auth.token && (
           <div className="flex items-center">
             <span className="mr-4">Bonjour, {auth.username}</span>
-            <button onClick={handleLogout} className="bg-red-500 px-3 py-1 rounded text-sm">Déconnexion</button>
+            <button onClick={handleLogout} className="bg-red-500 px-3 py-1 rounded text-sm" method="POST">Déconnexion</button>
           </div>
         )}
       </nav>

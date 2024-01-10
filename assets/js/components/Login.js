@@ -10,16 +10,17 @@ function Login() {
     const [errorMsg, setErrorMsg] = useState('');
     const { setAuth } = useAuth();
     const navigate = useNavigate();
-
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrorMsg('');
-
+    
         try {
             const response = await axios.post('http://localhost:8000/login', { username, password });
-            localStorage.setItem('token', response.data.token);
-            setAuth({ token: response.data.token, username: username });
-            navigate('/'); 
+            const authData = { token: response.data.token, username: username };
+            localStorage.setItem('auth', JSON.stringify(authData));
+            setAuth(authData);
+            navigate('/');
         } catch (error) {
             setErrorMsg('Échec de la connexion. Vérifiez vos identifiants.');
             console.error('Erreur de connexion:', error);
