@@ -64,7 +64,7 @@ const Home = () => {
       <header className="text-center p-6 mt-4">
         <h1 className="text-3xl font-bold">Bienvenue sur notre page de Reviews</h1>
       </header>
-      <main className="p-4">
+      <main className="p-4 mx-auto max-w-4xl">
         <Reviews />
       </main>
     </div>
