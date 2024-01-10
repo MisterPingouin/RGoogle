@@ -11,28 +11,42 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 
 class ReviewController extends AbstractController
 {
     #[Route('/api/reviews', name: 'get_reviews', methods: ['GET'])]
-    public function getReviews(ReviewRepository $reviewRepository): JsonResponse
+    public function getReviews(ReviewRepository $reviewRepository, Request $request): JsonResponse
     {
-        $reviews = $reviewRepository->findAll();
-        $responseArray = [];
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
     
-        foreach ($reviews as $review) {
-            $responseArray[] = [
+        $query = $reviewRepository->createQueryBuilder('r')
+            ->orderBy('r.date', 'DESC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery();
+    
+        $paginator = new Paginator($query);
+        $totalItems = count($paginator);
+        $totalPages = ceil($totalItems / $limit);
+    
+        $reviewsData = array_map(function ($review) {
+            return [
                 'id' => $review->getId(),
                 'title' => $review->getTitle(),
                 'image' => $review->getImage(),
                 'date' => $review->getDate()->format('Y-m-d'),
                 'username' => $review->getUser()->getUserIdentifier()
             ];
-        }
+        }, iterator_to_array($paginator));
     
-        return new JsonResponse($responseArray);
+        return new JsonResponse([
+            'reviews' => $reviewsData,
+            'totalPages' => $totalPages
+        ]);
     }
-
     #[Route('/api/reviews/add', name: 'add_review', methods: ['POST'])]
     public function addReview(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
