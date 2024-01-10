@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useAuth } from './AuthContext'; 
+import { useNavigate } from 'react-router-dom';
+
 
 function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
+    const { setAuth } = useAuth();
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -12,10 +17,9 @@ function Login() {
 
         try {
             const response = await axios.post('http://localhost:8000/login', { username, password });
-
             localStorage.setItem('token', response.data.token);
-            console.log('Connexion réussie:', response.data);
-
+            setAuth({ token: response.data.token, username: username });
+            navigate('/'); 
         } catch (error) {
             setErrorMsg('Échec de la connexion. Vérifiez vos identifiants.');
             console.error('Erreur de connexion:', error);
