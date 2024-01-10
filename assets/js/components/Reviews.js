@@ -24,7 +24,8 @@ const Reviews = () => {
                 <div key={review.id}>
                     <h2>{review.title}</h2>
                     <img src={`/uploads/${review.image}`} alt={review.title} />
-                                        <p>Date: {review.date}</p>
+                    <p>Posté par: {review.username}</p>
+                    <p>Date: {review.date}</p>
                 </div>
             ))}
         </div>
