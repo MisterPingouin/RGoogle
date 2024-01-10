@@ -6,20 +6,31 @@ function Register() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
-    const navigate = useNavigate(); 
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrorMsg('');
+        setIsLoading(true);
 
         try {
-            await axios.post('http://localhost:8000/registration', { username, password });
-            navigate('/login'); 
+            console.log('Sending registration data:', { username, password });
+            const response = await axios.post('http://localhost:8000/registration', { username, password });
+            console.log('Received response:', response);
+
+            if (response.status === 201) {
+                navigate('/login');
+            } else {
+                setErrorMsg('Échec de l\'inscription. Réponse inattendue du serveur.');
+            }
         } catch (error) {
-            setErrorMsg('Échec de l\'inscription. Essayez un autre nom d’utilisateur.');
             console.error('Erreur d\'inscription:', error);
+            setErrorMsg(error.response?.data?.error || 'Erreur d\'inscription inconnue.');
+        } finally {
+            setIsLoading(false);
         }
     };
-
 
     return (
         <div className="container mx-auto">
@@ -60,6 +71,7 @@ function Register() {
                 </div>
                 {errorMsg && <p className="text-red-500">{errorMsg}</p>}
             </form>
+            {isLoading && <p>Loading...</p>}
         </div>
     );
 }

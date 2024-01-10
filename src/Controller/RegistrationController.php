@@ -5,42 +5,49 @@ namespace App\Controller;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RegistrationController extends AbstractController
 {
     private $entityManager;
+    private $serializer;
+    private $validator;
 
-    // Constructeur pour l'injection de l'EntityManager
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, ValidatorInterface $validator)
     {
         $this->entityManager = $entityManager;
+        $this->serializer = $serializer;
+        $this->validator = $validator;
     }
 
     #[Route('/registration', name: 'app_registration', methods: ['POST'])]
-    public function register(Request $request, UserPasswordHasherInterface $passwordHasher): Response
+    public function register(Request $request, UserPasswordHasherInterface $passwordHasher): JsonResponse
     {
-        // Récupération des données envoyées par le client (React)
         $data = json_decode($request->getContent(), true);
-
-        // Création d'une nouvelle instance de l'entité User
-        $user = new User();
         
-        // Attribution du nom d'utilisateur (username) à partir des données reçues
-        $user->setUsername($data['username']);
+        $user = $this->serializer->deserialize($request->getContent(), User::class, 'json');
+        $errors = $this->validator->validate($user);
 
-        // Hashage du mot de passe reçu et attribution au User
-        $hashedPassword = $passwordHasher->hashPassword($user, $data['password']);
-        $user->setPassword($hashedPassword);
+        if (count($errors) > 0) {
+            return new JsonResponse(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
+        }
 
-        // Persistance de l'objet User pour le sauvegarder dans la base de données
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+        $user->setPassword($passwordHasher->hashPassword($user, $user->getPassword()));
 
-        // Réponse indiquant la création réussie de l'utilisateur
-        return new Response(sprintf('User %s successfully created', $user->getUsername()));
+        try {
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => 'Error during registration'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return new JsonResponse(['message' => 'User successfully created'], Response::HTTP_CREATED);
     }
 }
+
