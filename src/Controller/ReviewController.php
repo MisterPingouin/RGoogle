@@ -32,7 +32,7 @@ class ReviewController extends AbstractController
         return new JsonResponse($responseArray);
     }
 
-    #[Route('/reviews/add', name: 'add_review', methods: ['POST'])]
+    #[Route('/api/reviews/add', name: 'add_review', methods: ['POST'])]
     public function addReview(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $title = $request->request->get('title');
@@ -44,7 +44,7 @@ class ReviewController extends AbstractController
             return new JsonResponse(['message' => 'No file uploaded'], Response::HTTP_BAD_REQUEST);
         }
 
-        if (!in_array($uploadedFile->getMimeType(), ['image/jpeg', 'image/png', 'image/gif'])) {
+        if (!in_array($uploadedFile->getMimeType(), ['image/jpeg', 'image/png', 'image/gif', 'image/webp'])) {
             return new JsonResponse(['message' => 'Invalid file type'], Response::HTTP_BAD_REQUEST);
         }
 
