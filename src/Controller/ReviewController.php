@@ -25,7 +25,8 @@ class ReviewController extends AbstractController
                 'id' => $review->getId(),
                 'title' => $review->getTitle(),
                 'image' => $review->getImage(),
-                'date' => $review->getDate()->format('Y-m-d')
+                'date' => $review->getDate()->format('Y-m-d'),
+                'username' => $review->getUser()->getUserIdentifier()
             ];
         }
     
@@ -65,6 +66,7 @@ class ReviewController extends AbstractController
         $review->setTitle($title);
         $review->setImage($newFilename);
         $review->setDate($date);
+        $review->setUser($this->getUser()); 
 
         $entityManager->persist($review);
         $entityManager->flush();
