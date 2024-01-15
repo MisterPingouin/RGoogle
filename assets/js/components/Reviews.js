@@ -16,6 +16,15 @@ const Reviews = () => {
         }
     };
 
+    const handleVote = async (reviewId, voteType) => {
+        try {
+            await axios.post(`http://localhost:8000/api/vote`, { reviewId, voteType });
+            loadReviews(currentPage);
+        } catch (error) {
+            console.error('Erreur lors du vote', error);
+        }
+    };
+
     useEffect(() => {
         loadReviews(currentPage);
     }, [currentPage]);
@@ -28,6 +37,20 @@ const Reviews = () => {
                     <img src={`/uploads/${review.image}`} alt={review.title} className="w-full h-auto" />
                     <p>Posté par: {review.username}</p>
                     <p>Date: {review.date}</p>
+                    <div>
+                        <button 
+                            onClick={() => handleVote(review.id, true)}
+                            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                            Vote +
+                        </button>
+                        <span>{review.positiveVotes}</span>
+                        <button 
+                            onClick={() => handleVote(review.id, false)}
+                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                            Vote -
+                        </button>
+                        <span>{review.negativeVotes}</span>
+                    </div>
                 </div>
             ))}
             <div className="flex justify-between items-center my-4">
