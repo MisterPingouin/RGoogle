@@ -33,6 +33,23 @@ class VoteRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    public function getReviewsSortedByPositiveVotesQuery($page, $limit)
+    {
+        $offset = ($page - 1) * $limit;
+    
+        return $this->createQueryBuilder('v')
+            ->select('IDENTITY(v.review) AS reviewId, COUNT(v.id) AS votes')
+            ->where('v.type = :type')
+            ->setParameter('type', true)
+            ->groupBy('v.review')
+            ->orderBy('votes', 'DESC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery();
+    }
+    
+
+    
 //    /**
 //     * @return Vote[] Returns an array of Vote objects
 //     */

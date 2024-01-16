@@ -50,6 +50,7 @@ const Home = () => {
       <nav className="bg-blue-500 p-4 text-white flex justify-between items-center">
         <div>
           <Link to="/" className="mr-4">Accueil</Link>
+          {!auth.token && <Link to="/bestreviews" className="ml-4 mr-4">Best reviews</Link>}
           {auth.token && <Link to="/add-review" className="mr-4">Ajouter Review</Link>}
           {!auth.token && <Link to="/login">Login</Link>}
           {!auth.token && <Link to="/register" className="ml-4">Inscription</Link>}

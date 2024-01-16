@@ -17,10 +17,10 @@ class Vote
     private ?bool $type = null;
 
     #[ORM\ManyToOne(inversedBy: 'votes')]
-    private ?user $user = null;
+    private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'votes')]
-    private ?review $review = null;
+    private ?Review $review = null;
 
     public function getId(): ?int
     {
