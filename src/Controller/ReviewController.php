@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Review;
+use App\Entity\Vote;
 use App\Repository\ReviewRepository;
+use App\Repository\VoteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,37 +18,62 @@ use Doctrine\ORM\Tools\Pagination\Paginator;
 class ReviewController extends AbstractController
 {
     #[Route('/api/reviews', name: 'get_reviews', methods: ['GET'])]
-    public function getReviews(ReviewRepository $reviewRepository, Request $request): JsonResponse
+    public function getReviews(ReviewRepository $reviewRepository, VoteRepository $voteRepository, Request $request): JsonResponse
     {
         $page = max(1, $request->query->getInt('page', 1));
         $limit = 10;
-        $offset = ($page - 1) * $limit;
+        $sort = $request->query->get('sort');
     
-        $query = $reviewRepository->createQueryBuilder('r')
-            ->orderBy('r.date', 'DESC')
-            ->setMaxResults($limit)
-            ->setFirstResult($offset)
-            ->getQuery();
+        if ($sort === 'votes') {
+            $reviewsQuery = $voteRepository->getReviewsSortedByPositiveVotesQuery($page, $limit);
+            $results = $reviewsQuery->getResult();
     
-        $paginator = new Paginator($query);
-        $totalItems = count($paginator);
-        $totalPages = ceil($totalItems / $limit);
+            $reviewIds = array_column($results, 'reviewId');
+            $reviews = $reviewRepository->findBy(['id' => $reviewIds]);
     
-        $reviewsData = array_map(function ($review) {
-            return [
-                'id' => $review->getId(),
-                'title' => $review->getTitle(),
-                'image' => $review->getImage(),
-                'date' => $review->getDate()->format('Y-m-d'),
-                'username' => $review->getUser()->getUserIdentifier()
-            ];
-        }, iterator_to_array($paginator));
+            $reviewsData = array_map(function ($review) use ($voteRepository) {
+                return [
+                    'id' => $review->getId(),
+                    'title' => $review->getTitle(),
+                    'image' => $review->getImage(),
+                    'date' => $review->getDate()->format('Y-m-d'),
+                    'username' => $review->getUser()->getUserIdentifier(),
+                    'positiveVotes' => $voteRepository->countVotes($review->getId(), true),
+                    'negativeVotes' => $voteRepository->countVotes($review->getId(), false)
+                ];
+            }, $reviews);
     
-        return new JsonResponse([
-            'reviews' => $reviewsData,
-            'totalPages' => $totalPages
-        ]);
-    }
+            // Calculez le nombre total de pages. Vous devrez peut-être ajuster cette logique.
+            $totalVotesCount = count($results);
+            $totalPages = ceil($totalVotesCount / $limit);
+        } else {
+            $reviewsQuery = $reviewRepository->createQueryBuilder('r')
+                ->orderBy('r.date', 'DESC')
+                ->setMaxResults($limit)
+                ->setFirstResult(($page - 1) * $limit)
+                ->getQuery();
+            $paginator = new Paginator($reviewsQuery);
+    
+            $totalItems = count($paginator);
+            $totalPages = ceil($totalItems / $limit);
+    
+            $reviewsData = array_map(function ($review) use ($voteRepository) {
+                return [
+                    'id' => $review->getId(),
+                    'title' => $review->getTitle(),
+                    'image' => $review->getImage(),
+                    'date' => $review->getDate()->format('Y-m-d'),
+                    'username' => $review->getUser()->getUserIdentifier(),
+                    'positiveVotes' => $voteRepository->countVotes($review->getId(), true),
+                    'negativeVotes' => $voteRepository->countVotes($review->getId(), false)
+                ];
+            }, iterator_to_array($paginator));
+        }
+    
+        return new JsonResponse(['reviews' => $reviewsData,
+        'totalPages' => $totalPages  ]);
+        }
+    
     #[Route('/api/reviews/add', name: 'add_review', methods: ['POST'])]
     public function addReview(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -87,5 +114,40 @@ class ReviewController extends AbstractController
 
         return new JsonResponse(['status' => 'Review added'], Response::HTTP_CREATED);
     }
+
+    #[Route('/api/vote', name: 'vote_review', methods: ['POST'])]
+public function vote(Request $request, VoteRepository $voteRepository, EntityManagerInterface $entityManager): JsonResponse
+{
+    $user = $this->getUser();
+    $data = json_decode($request->getContent(), true);
+    $reviewId = $data['reviewId'];
+    $voteType = $data['voteType'];
+
+    $review = $entityManager->getRepository(Review::class)->find($reviewId);
+    if (!$review) {
+        return new JsonResponse(['message' => 'Review not found'], JsonResponse::HTTP_NOT_FOUND);
+    }
+
+    $existingVote = $voteRepository->findOneBy(['user' => $user, 'review' => $review]);
+    if ($existingVote) {
+        if ($existingVote->isType() === $voteType) {
+            $entityManager->remove($existingVote);
+            $entityManager->flush();
+            return new JsonResponse(['message' => 'Vote removed']);
+        } else {
+            $existingVote->setType($voteType);
+            $entityManager->flush();
+            return new JsonResponse(['message' => 'Vote updated']);
+        }
+    } else {
+        $vote = new Vote();
+        $vote->setUser($user);
+        $vote->setReview($review);
+        $vote->setType($voteType);
+        $entityManager->persist($vote);
+        $entityManager->flush();
+        return new JsonResponse(['message' => 'Vote added']);
+    }
+}
     
 }

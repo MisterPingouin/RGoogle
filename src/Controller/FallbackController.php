@@ -8,7 +8,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class FallbackController extends AbstractController
 {
-    #[Route('/{reactRouting}', name: 'react_fallback', requirements: ['reactRouting' => '^(?!api|build|_profiler|wdt|bundles|registration|login|logout|verify-token).*'])]
+    #[Route('/{reactRouting}', name: 'react_fallback', requirements: ['reactRouting' => '^(?!api|build|_profiler|wdt|bundles|registration|login|logout|verify-token|bestreviews).*'])]
         public function index(): Response
     {
         return $this->render('base.html.twig');
