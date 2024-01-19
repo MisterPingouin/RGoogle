@@ -1,12 +1,10 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from './AuthContext';
-import Reviews from './Reviews';
 import Navbar from './Navbar'; 
-import '../../styles/home.scss';
+import BestReviews from './BestReviews';
+import { useAuth } from './AuthContext';
 import axios from 'axios';
 
-const Home = () => {
+const BestReviewPage = () => {
   const { auth, setAuth } = useAuth();
 
   useEffect(() => {
@@ -30,8 +28,7 @@ const Home = () => {
     };
 
     verifyAuth();
-}, [setAuth]);
-  
+  }, [setAuth]);
 
   const handleLogout = async () => {
     // Déconnectez l'utilisateur côté client
@@ -48,15 +45,15 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-     <Navbar auth={auth} handleLogout={handleLogout} />
+      <Navbar auth={auth} handleLogout={handleLogout} />
       <header className="text-center p-6 mt-4">
-        <h1 className="text-3xl font-bold">Bienvenue sur notre page de Reviews</h1>
+        <h1 className="text-3xl font-bold">Meilleures Reviews</h1>
       </header>
       <main className="p-4 mx-auto max-w-4xl">
-        <Reviews />
+        <BestReviews />
       </main>
     </div>
   );
 };
 
-export default Home;
+export default BestReviewPage;
