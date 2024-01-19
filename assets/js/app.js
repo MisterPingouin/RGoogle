@@ -1,13 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './components/AuthContext';
-import Home from './components/Home';
-import ErrorPage from './components/ErrorPage';
-import Login from './components/Login';
-import Register from './components/Register';
-import BestReviews from './components/BestReviewsPage';
+import Home from './pages/Home';
+import ErrorPage from './pages/ErrorPage';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import BestReviews from './pages/BestReviewsPage';
 import '../styles/app.css';
-import AddReviewPage from './components/AddReviewPage';
+import AddReviewPage from './pages/AddReviewPage';
 
 const App = () => {
   return (

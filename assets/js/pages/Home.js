@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from './AuthContext';
-import Reviews from './Reviews';
-import Navbar from './Navbar'; 
+import { useAuth } from '../components/AuthContext';
+import Reviews from '../components/Reviews';
+import Navbar from '../components/Navbar'; 
 import '../../styles/home.scss';
 import axios from 'axios';
 

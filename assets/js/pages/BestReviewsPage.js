@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import Navbar from './Navbar'; 
-import BestReviews from './BestReviews';
-import { useAuth } from './AuthContext';
+import Navbar from '../components/Navbar'; 
+import BestReviews from '../components/BestReviews';
+import { useAuth } from '../components/AuthContext';
 import axios from 'axios';
 
 const BestReviewPage = () => {
